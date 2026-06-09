@@ -2,11 +2,32 @@ import sys
 import os
 import re
 import json
-import time
 import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import anthropic
+
+from model import (
+    build_prospect,
+    sanitize_choice,
+    WEBSITE_QUALITIES,
+    BOOKING_QUALITIES,
+    CTA_PRESENCES,
+    WEBSITE_FRESHNESS_VALUES,
+)
+from scraper import scrape_website, check_website_accessibility
+from discovery import search_places
+from filters import elimination_reasons
+from friction import assign_friction
+from bps import assign_bps
+import ranking
+import messaging
+import monitoring
+import scorelog
+import feedback
+import calibration
+from notion_sync import create_or_update_prospect
+from segmentation import should_export, qualification, EXPORT_MIN_BPS, QUALIFICATION_VALUES
+from cache import load_cache, save_cache, was_processed_recently, mark_processed
 
 load_dotenv()
 
@@ -14,10 +35,6 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 NOTION_DB_ID = "3468c144ece78081ad5edd03993469a7"
-
-HEADERS_BROWSER = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
 
 VALID_BESOINS = [
     "Pas de réservation en ligne",
@@ -30,33 +47,11 @@ VALID_BESOINS = [
 ]
 
 
-def search_places(keyword: str, city: str) -> list[dict]:
-    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
-    query = f"{keyword} {city}"
-    results = []
-    params = {"query": query, "key": GOOGLE_API_KEY, "language": "fr"}
-
-    while len(results) < 20:
-        resp = requests.get(url, params=params, timeout=10)
-        data = resp.json()
-        if data.get("status") not in ("OK", "ZERO_RESULTS"):
-            print(f"[Google Places erreur] status={data.get('status')} — {data.get('error_message', '')}")
-            break
-        results.extend(data.get("results", []))
-        next_token = data.get("next_page_token")
-        if not next_token or len(results) >= 20:
-            break
-        time.sleep(2)
-        params = {"pagetoken": next_token, "key": GOOGLE_API_KEY}
-
-    return results[:20]
-
-
 def get_place_details(place_id: str) -> dict:
     url = "https://maps.googleapis.com/maps/api/place/details/json"
     params = {
         "place_id": place_id,
-        "fields": "name,formatted_phone_number,website",
+        "fields": "name,formatted_phone_number,website,user_ratings_total,rating,types,business_status",
         "key": GOOGLE_API_KEY,
         "language": "fr",
     }
@@ -64,43 +59,12 @@ def get_place_details(place_id: str) -> dict:
     return resp.json().get("result", {})
 
 
-def scrape_website(url: str) -> dict:
-    result = {"email": None, "facebook": None, "instagram": None, "text": ""}
-    if not url:
-        return result
-    try:
-        resp = requests.get(url, headers=HEADERS_BROWSER, timeout=10)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        text = soup.get_text(separator=" ", strip=True)
-        result["text"] = text[:8000]
-
-        # Email
-        emails = re.findall(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", text)
-        if emails:
-            result["email"] = emails[0]
-
-        # Social links
-        for a in soup.find_all("a", href=True):
-            href = a["href"]
-            if "facebook.com" in href and not result["facebook"]:
-                result["facebook"] = href
-            if "instagram.com" in href and not result["instagram"]:
-                result["instagram"] = href
-
-    except Exception:
-        pass
-
-    return result
-
-
 def analyze_with_claude(name: str, site_text: str, has_website: bool) -> dict:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     context = site_text if site_text else f"Aucun site web trouvé pour '{name}'."
 
-    prompt = f"""Tu analyses le profil d'un professionnel nommé "{name}" pour évaluer s'il est pertinent comme prospect pour un outil de réservation en ligne payant (comme Planity, Doctolib, etc.).
+    prompt = f"""Tu es un EXTRACTEUR DE FAITS. À partir du contenu ci-dessous, tu relèves uniquement des éléments OBSERVABLES sur le professionnel nommé "{name}". Tu ne juges PAS sa pertinence commerciale (aucune note de pertinence) et tu n'inventes rien : si une information est absente, utilise la valeur prévue ("unknown" / "Aucun" / liste vide).
 
 Contenu du site web :
 \"\"\"
@@ -109,14 +73,18 @@ Contenu du site web :
 
 Réponds UNIQUEMENT avec un objet JSON valide (sans markdown, sans explication) avec ces champs :
 - "activites" : string décrivant les activités/métiers du professionnel
-- "besoins" : array avec les besoins détectés parmi ces valeurs exactes uniquement : "Pas de réservation en ligne", "Pas de paiement en ligne", "Pas de site", "Réseaux sociaux inefficaces", "Perte de temps (gestion manuelle)", "Pas de clients"
-- "booking_software" : string (outil de réservation détecté sur le site, ou "Aucun")
-- "score" : integer de 1 à 5 (pertinence pour un outil de réservation en ligne payant — 5 = très pertinent)
-- "notes" : string résumé rapide du profil (1-2 phrases)"""
+- "besoins" : array des MANQUES observés parmi ces valeurs exactes uniquement : "Pas de réservation en ligne", "Pas de paiement en ligne", "Pas de site", "Réseaux sociaux inefficaces", "Perte de temps (gestion manuelle)", "Pas de clients"
+- "booking_software" : string COURTE = nom exact de l'outil de réservation/prise de RDV en ligne identifié (ex. "Planity", "Calendly", "Treatwell"), ou "Aucun" si aucun outil dédié n'est identifié. C'est un libellé technique, jamais une phrase.
+- "booking_details" : string (1-2 phrases) décrivant FACTUELLEMENT comment la prise de rendez-vous / réservation fonctionne aujourd'hui : nomme l'outil dédié s'il y en a un, sinon précise le moyen observé (téléphone, lien sur un réseau social, formulaire de contact, e-mail…) ou indique qu'aucun outil permettant aux clients de réserver directement n'a été identifié. Factuel et observationnel, sans jugement commercial. Ex. : "Pas d'outil dédié à la réservation identifié : la prise de rendez-vous semble aujourd'hui passer uniquement par un lien disponible sur son compte Facebook."
+- "notes" : string (2-4 phrases) — résumé FACTUEL et OBSERVATIONNEL du profil : ce que fait le professionnel, comment il gère concrètement ses rendez-vous / clients, et ce qui manque opérationnellement (ex. absence d'outil pour piloter les réservations). Décris les faits et leurs implications pratiques, jamais la pertinence commerciale ni une intention de vente. Ex. de ton : "La prise de rendez-vous se fait pour le moment via un lien disponible sur son compte Facebook. Elle ne dispose pas d'un outil permettant à ses clients de réserver directement ; je pense donc qu'elle n'a rien pour piloter ses réservations."
+- "website_quality" : une valeur exacte parmi "none","poor","average","good" ("none" si aucun site)
+- "booking_quality" : une valeur exacte parmi "none","basic","advanced" ("none" si aucune réservation en ligne)
+- "cta_presence" : "present","absent" ou "unknown" — "present" si le site affiche un appel à l'action clair (réserver, prendre RDV, demander un devis, contact) ; "absent" s'il n'y en a aucun ; "unknown" si aucun site
+- "website_freshness" : "fresh","outdated" ou "unknown" — "fresh" si design/contenu récent ; "outdated" si site vieillissant ; "unknown" si aucun site"""
 
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=512,
+        max_tokens=700,
         messages=[{"role": "user", "content": prompt}],
     )
 
@@ -131,64 +99,91 @@ Réponds UNIQUEMENT avec un objet JSON valide (sans markdown, sans explication) 
     data["besoins"] = [b for b in data.get("besoins", []) if b in VALID_BESOINS]
     data.setdefault("activites", "")
     data.setdefault("booking_software", "Aucun")
-    data.setdefault("score", 1)
+    data.setdefault("booking_details", "")
     data.setdefault("notes", "")
+    data["website_quality"] = sanitize_choice(data.get("website_quality"), WEBSITE_QUALITIES, "unknown")
+    data["booking_quality"] = sanitize_choice(data.get("booking_quality"), BOOKING_QUALITIES, "unknown")
+    data["cta_presence"] = sanitize_choice(data.get("cta_presence"), CTA_PRESENCES, "unknown")
+    data["website_freshness"] = sanitize_choice(data.get("website_freshness"), WEBSITE_FRESHNESS_VALUES, "unknown")
 
     return data
 
 
-def create_notion_page(lead: dict) -> bool:
-    url = "https://api.notion.com/v1/pages"
-    headers = {
-        "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Content-Type": "application/json",
-        "Notion-Version": "2022-06-28",
+def _fallback_analysis():
+    """Analyse neutre de repli quand l'appel Claude échoue sur un lead.
+
+    N'invente aucun besoin ni irritant (tout reste "unknown") : le lead n'est
+    pas perdu, friction et BPS tournent sur les signaux Google + scrape déjà
+    collectés. Aucune note de pertinence — le gate d'export se base sur le BPS,
+    jamais sur un jugement Claude.
+    """
+    return {
+        "activites": "",
+        "besoins": [],
+        "booking_software": "Aucun",
+        "booking_details": "",
+        "notes": "Analyse Claude indisponible (appel en échec).",
+        "website_quality": "unknown",
+        "booking_quality": "unknown",
+        "cta_presence": "unknown",
+        "website_freshness": "unknown",
     }
 
-    def url_prop(val):
-        return {"url": val} if val else {"url": None}
 
-    properties = {
-        "Nom": {"title": [{"text": {"content": lead["nom"]}}]},
-        "Statut": {"select": {"name": "Prospect"}},
-        "Source": {"select": {"name": "autres"}},
-        "Activités/métiers": {"rich_text": [{"text": {"content": lead["activites"][:2000]}}]},
-        "Booking software": {"rich_text": [{"text": {"content": lead["booking_software"][:2000]}}]},
-        "Notes": {"rich_text": [{"text": {"content": lead["notes"][:2000]}}]},
-        "Besoin / Problème": {"multi_select": [{"name": b} for b in lead["besoins"]]},
-    }
+def _parse_args(argv):
+    """Sépare flags (--dry-run / --healthcheck / --report) et positionnels (mot-clé, ville)."""
+    flags = {a for a in argv if a.startswith("--")}
+    positional = [a for a in argv if not a.startswith("--")]
+    return positional, ("--dry-run" in flags), ("--healthcheck" in flags), ("--report" in flags)
 
-    if lead.get("telephone"):
-        properties["Téléphone"] = {"phone_number": lead["telephone"]}
-    if lead.get("email"):
-        properties["E-mail"] = {"email": lead["email"]}
-    if lead.get("site_web"):
-        properties["Site web"] = url_prop(lead["site_web"])
-    if lead.get("facebook"):
-        properties["Facebook"] = url_prop(lead["facebook"])
-    if lead.get("instagram"):
-        properties["Instagram"] = url_prop(lead["instagram"])
 
-    payload = {
-        "parent": {"database_id": NOTION_DB_ID},
-        "properties": properties,
-    }
+def _run_report():
+    """Rapport LECTURE SEULE (aucune écriture, aucun poids muté) :
+      - taux de réponse par bande de qualification (C3), depuis les issues Notion ;
+      - proposition de calibration des poids BPS (C2), en joignant le journal local
+        des breakdowns (scorelog) aux issues Notion par ID Client.
 
-    resp = requests.post(url, headers=headers, json=payload, timeout=15)
-    if resp.status_code not in (200, 201):
-        print(f"    [Notion error {resp.status_code}] {resp.text[:200]}")
-        return False
-    return True
+    La calibration n'est JAMAIS appliquée : c'est une proposition à valider à la
+    main (qualité > automatisation). Tant que peu d'issues gagné/perdu existent,
+    elle reste explicitement « non fiable » et les poids restent inchangés.
+    """
+    outcomes = feedback.load_outcomes(token=NOTION_TOKEN, db_id=NOTION_DB_ID)
+    rates = messaging.response_rates(outcomes)
+    print("Taux de réponse par bande (issues Notion réelles) :")
+    for band in QUALIFICATION_VALUES:
+        slot = rates.get(band, {})
+        rate = slot.get("rate")
+        rate_s = f"{rate:.0%}" if rate is not None else "—"
+        print(f"  {band:<13} contactés {slot.get('contacted', 0):>3} | réponses {slot.get('responded', 0):>3} | taux {rate_s}")
+
+    samples = scorelog.build_calibration_samples(scorelog.load_breakdowns(), outcomes)
+    print(f"\n{len(samples)} prospect(s) avec breakdown journalisé ET issue connue (base de calibration).")
+    print(calibration.format_report(calibration.propose_weights(samples)))
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: python vitryne_leads.py \"mot-clé\" \"ville\"")
+    positional, dry_run, do_healthcheck, do_report = _parse_args(sys.argv[1:])
+
+    if do_healthcheck:
+        # Diagnostic lecture seule : présence des clés + base Notion joignable.
+        result = monitoring.healthcheck(token=NOTION_TOKEN, db_id=NOTION_DB_ID)
+        print(monitoring.format_health(result))
+        sys.exit(0 if result["healthy"] else 1)
+
+    if do_report:
+        # Bilan lecture seule (taux de réponse C3 + proposition calibration C2).
+        _run_report()
+        sys.exit(0)
+
+    if len(positional) < 2:
+        print("Usage: python vitryne_leads.py \"mot-clé[,mot-clé2,...]\" \"zone[,zone2,...]\" [--dry-run] [--healthcheck] [--report]")
+        print("       Balayage élargi : séparez les mots-clés et les zones (quartiers/villes) par des virgules.")
         sys.exit(1)
 
-    keyword = sys.argv[1]
-    city = sys.argv[2]
+    keyword, city = positional[0], positional[1]
 
+    if dry_run:
+        print("\n[dry-run] MODE SIMULATION : aucune écriture Notion ni cache.")
     print(f"\n🔍 Recherche : '{keyword}' à {city}\n")
 
     places = search_places(keyword, city)
@@ -196,10 +191,19 @@ def main():
 
     total = 0
     inserted = 0
+    rejected = 0
+    cached = 0
+    errors = 0
+    scored = []
+    cache_data = load_cache()
 
     for place in places:
-        total += 1
         place_id = place.get("place_id", "")
+        if was_processed_recently(cache_data, place_id):
+            cached += 1
+            print(f"[cache] {place.get('name', '…')} — déjà traité récemment, ignoré.")
+            continue
+        total += 1
         details = get_place_details(place_id)
 
         nom = details.get("name") or place.get("name", "Inconnu")
@@ -209,35 +213,99 @@ def main():
         print(f"[{total}/{len(places)}] {nom}")
 
         scraped = scrape_website(site_web)
-        analysis = analyze_with_claude(nom, scraped["text"], bool(site_web))
 
-        score = analysis.get("score", 1)
-        print(f"    Score : {score}/5 — {analysis.get('notes', '')}")
+        pre = build_prospect(
+            nom=nom, telephone=telephone, site_web=site_web,
+            scraped=scraped, analysis={}, google=details, place_id=place_id,
+            ville=city, keyword=keyword,
+        )
+        reasons = elimination_reasons(pre)
+        if reasons:
+            rejected += 1
+            mark_processed(cache_data, place_id, name=nom)
+            print(f"    ✗ Rejeté avant scoring : {', '.join(reasons)}")
+            continue
 
-        if score >= 3:
-            lead = {
-                "nom": nom,
-                "telephone": telephone,
-                "email": scraped["email"],
-                "site_web": site_web,
-                "facebook": scraped["facebook"],
-                "instagram": scraped["instagram"],
-                "activites": analysis["activites"],
-                "besoins": analysis["besoins"],
-                "booking_software": analysis["booking_software"],
-                "notes": analysis["notes"],
-            }
-            ok = create_notion_page(lead)
-            if ok:
+        try:
+            analysis = analyze_with_claude(nom, scraped["text"], bool(site_web))
+        except Exception as e:
+            print(f"    ! Claude indisponible : {e} — repli analyse neutre, lead conservé.")
+            analysis = _fallback_analysis()
+
+        notes = analysis.get("notes", "")
+        if notes:
+            print(f"    Faits : {notes}")
+
+        # Accessibilité du site, sondée pour les SEULS survivants des filtres
+        # éliminatoires — JAMAIS sur un lead déjà rejeté. Pourquoi ici :
+        #   1) économie réseau : aucune requête gaspillée sur un lead écarté ;
+        #   2) le flag ne sert qu'au modèle Messenger (image_pro/erreur), généré
+        #      en aval pour les seuls leads qualifiés (gate BPS).
+        # Enrichit `scraped` -> mappé sur le prospect dans build_prospect.
+        scraped.update(check_website_accessibility(site_web))
+
+        prospect = build_prospect(
+            nom=nom, telephone=telephone, site_web=site_web,
+            scraped=scraped, analysis=analysis, google=details, place_id=place_id,
+            ville=city, keyword=keyword,
+        )
+        assign_friction(prospect)
+        print(f"    Friction : {prospect.friction_score} — {', '.join(prospect.friction_flags) or 'aucun irritant'}")
+
+        assign_bps(prospect)
+        scored.append(prospect)
+        print(f"    BPS : {prospect.bps}/100")
+
+        if should_export(prospect.bps):
+            if dry_run:
                 inserted += 1
-                print(f"    ✓ Inséré dans Notion")
+                print(f"    [dry-run] Notion ignoré — aurait créé/màj la fiche (BPS {prospect.bps})")
             else:
-                print(f"    ✗ Échec insertion Notion")
+                # Journal best effort du breakdown (jointure C2 ultérieure par
+                # place_id avec les issues Notion) : n'échoue jamais le pipeline.
+                scorelog.record_score(prospect)
+                try:
+                    action, _page_id = create_or_update_prospect(
+                        prospect, token=NOTION_TOKEN, db_id=NOTION_DB_ID
+                    )
+                    inserted += 1
+                    mark_processed(cache_data, place_id, name=nom, bps=prospect.bps)
+                    print(f"    ✓ Notion : {action}")
+                except Exception as e:
+                    errors += 1
+                    print(f"    ✗ Échec Notion : {e}")
         else:
-            print(f"    → Ignoré (score < 3)")
+            mark_processed(cache_data, place_id, name=nom, bps=prospect.bps)
+            print(f"    → Ignoré (BPS {prospect.bps} < {EXPORT_MIN_BPS})")
+
+    if dry_run:
+        print("\n[dry-run] cache NON sauvegardé, aucune écriture effectuée.")
+    else:
+        save_cache(cache_data)
+
+    stats = ranking.compute_stats(scored)
+    top = ranking.select_elite(scored, limit=ranking.TOP_STRICT)
+
+    counters = {
+        "keyword": keyword, "city": city, "dry_run": dry_run,
+        "total": total, "inserted": inserted, "rejected": rejected,
+        "cached": cached, "errors": errors,
+    }
+    # Journal best effort (jamais en dry-run : aucun effet de bord en simulation).
+    if not dry_run:
+        monitoring.record_run(counters)
 
     print(f"\n{'='*50}")
-    print(f"Résumé : {total} prospects analysés, {inserted} insérés dans Notion.")
+    print(monitoring.run_report(counters))
+    print(f"Résumé : {total} analysés, {rejected} rejetés (filtres), {inserted} {'simulés' if dry_run else 'insérés'} (Notion), {cached} ignorés (cache), {errors} erreurs.")
+    if stats["total"]:
+        print(f"BPS — min {stats['bps_min']} / médiane {stats['bps_median']} / moyenne {stats['bps_avg']} / max {stats['bps_max']}  |  élite (BPS≥{stats['min_bps']}) : {stats['elite_count']}")
+    if top:
+        print(f"\nTop {len(top)} prospects :")
+        for rang, p in enumerate(top, 1):
+            ville = f" — {p.ville}" if p.ville else ""
+            angle = messaging.message_angle(p.bps)[1]
+            print(f"  {rang}. {p.nom} — BPS {p.bps} ({qualification(p.bps)}, angle: {angle}){ville}")
     print(f"{'='*50}\n")
 
 

@@ -1,0 +1,22 @@
+# Secrets — ne JAMAIS committer (clés Google / Notion / Anthropic)
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Cache local des Place ID traités (anti-retraitement, jamais commité)
+.vitryne_cache.json
+
+# Journal des runs (monitoring, best effort, jamais commité)
+.vitryne_runs.jsonl
+
+# Journal des breakdowns BPS (calibration C2, best effort, jamais commité)
+.vitryne_scores.jsonl
+
+# OS
+.DS_Store

@@ -708,21 +708,6 @@ body {
   color: var(--text);
   line-height: 1.3;
 }
-.card-score {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-.score-1, .score-2 { background: rgba(239,68,68,0.15); color: var(--red-l); border: 1px solid rgba(239,68,68,0.25); }
-.score-3 { background: rgba(245,158,11,0.15); color: var(--gold-l); border: 1px solid rgba(245,158,11,0.25); }
-.score-4, .score-5 { background: rgba(16,185,129,0.15); color: var(--green-l); border: 1px solid rgba(16,185,129,0.25); }
-
 .card-tags {
   display: flex;
   flex-wrap: wrap;
@@ -865,6 +850,104 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Moteur : BPS / Qualification / Friction ────────────── */
+.moteur-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.4s ease 0.15s;
+}
+.moteur-row.visible { opacity: 1; transform: translateY(0); }
+
+.qualif-chip {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+  color: var(--text2);
+  background: rgba(100,116,139,0.12);
+}
+.qualif-chip.exceptionnel { background: rgba(16,185,129,0.15); color: var(--green-l); border-color: rgba(16,185,129,0.35); }
+.qualif-chip.prioritaire  { background: rgba(124,58,237,0.18); color: var(--purple-l); border-color: var(--border2); }
+.qualif-chip.opportunite  { background: rgba(245,158,11,0.15); color: var(--gold-l); border-color: rgba(245,158,11,0.3); }
+.qualif-chip.ignorer      { background: rgba(100,116,139,0.12); color: var(--text2); border-color: rgba(100,116,139,0.25); }
+
+.friction-pill {
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.friction-pill b { color: var(--gold-l); font-weight: 800; }
+
+/* feed card : BPS chip + états éliminé / erreur */
+.card-bps {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: rgba(124,58,237,0.12);
+  border: 1px solid var(--border2);
+  color: var(--purple-l);
+  white-space: nowrap;
+}
+.lead-card.eliminated { border-color: rgba(245,158,11,0.3); opacity: 0.85; }
+.lead-card.eliminated::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--gold); border-radius: 3px 0 0 3px;
+}
+.lead-card.error { border-color: rgba(239,68,68,0.4); }
+.lead-card.error::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--red); border-radius: 3px 0 0 3px;
+}
+.lead-card.error .card-status { white-space: normal; align-items: flex-start; }
+.card-status.elim { color: var(--gold-l); }
+.card-status.err  { color: var(--red-l); }
+.card-tag.reason {
+  background: rgba(245,158,11,0.1);
+  border-color: rgba(245,158,11,0.25);
+  color: var(--gold-l);
+}
+
+.nav-stat-val.eliminated { background: linear-gradient(135deg, var(--gold), var(--red-l)); -webkit-background-clip: text; background-clip: text; }
+.done-stat-val.d-eliminated { color: var(--gold-l); }
+
+.status-banner.error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: var(--red-l);
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #main { grid-template-columns: 1fr; }
+  #leads-feed { max-height: none; }
+  .pipeline { max-width: 100%; overflow-x: auto; padding-bottom: 8px; }
+  .nav-stats { gap: 16px; }
+}
+@media (max-width: 600px) {
+  #navbar { flex-wrap: wrap; gap: 12px; padding: 14px 18px; }
+  .search-group { order: 3; max-width: 100%; flex-basis: 100%; }
+  .nav-stats { margin-left: 0; width: 100%; justify-content: space-between; gap: 8px; }
+  .nav-stat-val { font-size: 18px; }
+  #pipeline-section { padding: 20px 18px 16px; }
+  #main { padding: 18px; gap: 18px; }
+  .lead-fields { grid-template-columns: 1fr; }
+  #active-card { padding: 20px; }
+  .done-card { padding: 32px 24px; }
+  .done-stats { gap: 18px; }
+  .done-stat-val { font-size: 28px; }
+}
 </style>
 </head>
 <body>
@@ -876,8 +959,8 @@ body {
     <div class="logo">Vitryne <span>Leads</span></div>
 
     <div class="search-group">
-      <input id="keyword" class="search-input" type="text" placeholder="Mot-clé — ex: coiffeur" value="">
-      <input id="city" class="search-input" type="text" placeholder="Ville — ex: Paris" value="">
+      <input id="keyword" class="search-input" type="text" placeholder="Mots-clés CSV — ex: coiffeur, barbier" value="">
+      <input id="city" class="search-input" type="text" placeholder="Zones CSV — ex: Paris, Boulogne" value="">
       <button id="launch-btn" class="btn btn-primary" onclick="launch()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Lancer
@@ -896,6 +979,14 @@ body {
       <div class="nav-stat">
         <div class="nav-stat-val skipped count-up" id="stat-skipped">0</div>
         <div class="nav-stat-label">Ignorés</div>
+      </div>
+      <div class="nav-stat">
+        <div class="nav-stat-val eliminated count-up" id="stat-eliminated">0</div>
+        <div class="nav-stat-label">Éliminés</div>
+      </div>
+      <div class="nav-stat">
+        <div class="nav-stat-val count-up" id="stat-cached">0</div>
+        <div class="nav-stat-label">Cache</div>
       </div>
     </div>
   </nav>
@@ -996,14 +1087,14 @@ body {
               <div class="lead-progress" id="lead-progress"></div>
               <div class="lead-name" id="lead-name">—</div>
             </div>
-            <div class="score-wrap" id="score-wrap" style="opacity:0; transition:opacity 0.4s 0.5s;">
+            <div class="score-wrap" id="score-wrap" title="Buy Probability Score sur 100 — score d'achat principal, déterministe et explicable" style="opacity:0; transition:opacity 0.4s 0.5s;">
               <svg class="score-ring-svg" viewBox="0 0 72 72">
                 <circle class="score-track" cx="36" cy="36" r="32"/>
                 <circle class="score-fill" id="score-fill" cx="36" cy="36" r="32" stroke="#7c3aed"/>
               </svg>
               <div class="score-center">
                 <div class="score-num" id="score-num" style="color:#7c3aed">—</div>
-                <div class="score-max">/5</div>
+                <div class="score-max">BPS</div>
               </div>
             </div>
           </div>
@@ -1045,6 +1136,11 @@ body {
                 <div class="field-val empty" id="fv-social">—</div>
               </div>
             </div>
+          </div>
+
+          <div class="moteur-row" id="moteur-row">
+            <div class="qualif-chip" id="qualif-chip">—</div>
+            <div class="friction-pill">Friction <b id="friction-val">0</b>/7</div>
           </div>
 
           <div class="besoins-row" id="besoins-row"></div>
@@ -1104,7 +1200,16 @@ body {
         <div class="done-stat-val d-skipped" id="done-skipped">0</div>
         <div class="done-stat-label">Ignorés</div>
       </div>
+      <div>
+        <div class="done-stat-val d-eliminated" id="done-eliminated">0</div>
+        <div class="done-stat-label">Éliminés</div>
+      </div>
+      <div>
+        <div class="done-stat-val" id="done-cached">0</div>
+        <div class="done-stat-label">Cache</div>
+      </div>
     </div>
+    <div id="done-top" style="margin:18px 0; text-align:left;"></div>
     <button class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="closeDone()">
       Fermer et nouvelle recherche
     </button>
@@ -1113,9 +1218,29 @@ body {
 
 <script>
 // ── State ────────────────────────────────────────────────
-let stats = { total: 0, inserted: 0, skipped: 0 };
+let stats = { total: 0, inserted: 0, skipped: 0, eliminated: 0, cached: 0 };
 let currentLead = {};
 const CIRCUMFERENCE = 2 * Math.PI * 32; // r=32 → 201.06
+
+// Bandes de qualification — miroir EXACT de segmentation.QUALIFICATION_BANDS.
+// test_frontend.py vérifie l'absence de dérive avec le backend.
+const QUALIF_BANDS = [[90, 'Exceptionnel'], [80, 'Prioritaire'], [75, 'Opportunité']];
+function qualification(bps) {
+  const v = parseInt(bps, 10);
+  if (isNaN(v)) return 'Ignorer';
+  for (const [threshold, label] of QUALIF_BANDS) {
+    if (v >= threshold) return label;
+  }
+  return 'Ignorer';
+}
+function qualifClass(label) {
+  return {
+    'Exceptionnel': 'exceptionnel',
+    'Prioritaire': 'prioritaire',
+    'Opportunité': 'opportunite',
+    'Ignorer': 'ignorer',
+  }[label] || 'ignorer';
+}
 
 const STEP_ORDER = ['details', 'scrape', 'claude', 'notion'];
 const NODE_MAP = {
@@ -1199,11 +1324,18 @@ function resetActiveCard() {
   document.getElementById('status-banner').className = 'status-banner';
   document.getElementById('status-banner').innerHTML = '';
 
-  // Reset score
+  // Reset anneau BPS
   document.getElementById('score-fill').style.strokeDashoffset = CIRCUMFERENCE;
   document.getElementById('score-num').textContent = '—';
   document.getElementById('score-num').style.color = '#7c3aed';
   document.getElementById('score-wrap').style.opacity = '0';
+
+  // Reset moteur (Qualification / Friction)
+  document.getElementById('moteur-row').classList.remove('visible');
+  document.getElementById('friction-val').textContent = '0';
+  const qc = document.getElementById('qualif-chip');
+  qc.textContent = '—';
+  qc.className = 'qualif-chip';
 }
 
 function showSearching() {
@@ -1218,25 +1350,37 @@ function showLeadContent() {
   document.getElementById('lead-content').style.display = 'flex';
 }
 
-function setScore(score) {
+function setBps(bps) {
+  // Anneau hero = BPS /100 (seul score d'achat ; couleur calée sur les bandes).
   const fill = document.getElementById('score-fill');
   const num = document.getElementById('score-num');
   const wrap = document.getElementById('score-wrap');
 
   wrap.style.opacity = '1';
-  num.textContent = score;
-
-  const pct = score / 5;
-  const offset = CIRCUMFERENCE * (1 - pct);
-  fill.style.strokeDashoffset = offset;
+  const val = (bps == null) ? 0 : Math.max(0, Math.min(100, bps));
+  num.textContent = (bps == null) ? '—' : bps;
+  fill.style.strokeDashoffset = CIRCUMFERENCE * (1 - val / 100);
 
   let color;
-  if (score <= 2)      color = '#ef4444';
-  else if (score === 3) color = '#f59e0b';
-  else                  color = '#10b981';
-
+  if (bps == null)   color = '#64748b';
+  else if (bps >= 90) color = '#10b981';   // Exceptionnel
+  else if (bps >= 80) color = '#7c3aed';   // Prioritaire
+  else if (bps >= 75) color = '#f59e0b';   // Opportunité
+  else                color = '#64748b';   // Ignorer
   fill.style.stroke = color;
   num.style.color = color;
+
+  // Bande de qualification + révélation du moteur.
+  const label = qualification(bps);
+  const chip = document.getElementById('qualif-chip');
+  chip.textContent = label;
+  chip.className = `qualif-chip ${qualifClass(label)}`;
+  document.getElementById('moteur-row').classList.add('visible');
+}
+
+function setFriction(score) {
+  document.getElementById('friction-val').textContent = (score == null ? '0' : score);
+  document.getElementById('moteur-row').classList.add('visible');
 }
 
 function setFieldVal(id, val) {
@@ -1265,6 +1409,8 @@ function updateStats() {
   animateCounter('stat-total', stats.total);
   animateCounter('stat-inserted', stats.inserted);
   animateCounter('stat-skipped', stats.skipped);
+  animateCounter('stat-eliminated', stats.eliminated);
+  animateCounter('stat-cached', stats.cached);
 }
 
 // ── Feed helpers ─────────────────────────────────────────
@@ -1273,29 +1419,74 @@ function addLeadCard(data, type) {
   const empty = document.getElementById('feed-empty');
   if (empty) empty.remove();
 
-  const score = data.score || 0;
-  const scoreClass = `score-${Math.max(1, Math.min(5, score))}`;
-  const besoins = (data.besoins || []).slice(0, 3);
-
   const card = document.createElement('div');
   card.className = `lead-card ${type}`;
-  card.innerHTML = `
-    <div class="card-top">
-      <div class="card-name">${escHtml(data.name || data.nom || '—')}</div>
-      <div class="card-score ${scoreClass}">${score}</div>
-    </div>
-    ${besoins.length ? `<div class="card-tags">${besoins.map(b => `<div class="card-tag">${escHtml(b)}</div>`).join('')}</div>` : ''}
-    <div class="card-status ${type === 'inserted' ? 'ok' : 'no'}">
-      ${type === 'inserted'
-        ? `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> Inséré dans Notion`
-        : `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg> Ignoré (score ${score}/5)`}
-    </div>
-  `;
+  const name = escHtml(data.name || data.nom || '—');
+  // Chip BPS présent dès que le moteur a tourné (inserted / skipped / error).
+  const bpsChip = (data.bps != null)
+    ? `<div class="card-bps">BPS ${escHtml(data.bps)}</div>`
+    : '';
+
+  if (type === 'eliminated') {
+    const reasons = (data.reasons || []).slice(0, 4);
+    card.innerHTML = `
+      <div class="card-top"><div class="card-name">${name}</div></div>
+      ${reasons.length ? `<div class="card-tags">${reasons.map(r => `<div class="card-tag reason">${escHtml(r)}</div>`).join('')}</div>` : ''}
+      <div class="card-status elim">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        Éliminé (filtres)
+      </div>`;
+  } else if (type === 'error') {
+    card.innerHTML = `
+      <div class="card-top"><div class="card-name">${name}</div>${bpsChip}</div>
+      <div class="card-status err">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        Échec Notion${data.message ? ` — ${escHtml(data.message)}` : ''}
+      </div>`;
+  } else {
+    // inserted / skipped
+    const besoins = (data.besoins || []).slice(0, 3);
+    const verb = data.action === 'updated' ? 'Mis à jour' : 'Créé';
+    card.innerHTML = `
+      <div class="card-top"><div class="card-name">${name}</div></div>
+      ${besoins.length ? `<div class="card-tags">${besoins.map(b => `<div class="card-tag">${escHtml(b)}</div>`).join('')}</div>` : ''}
+      ${bpsChip}
+      <div class="card-status ${type === 'inserted' ? 'ok' : 'no'}">
+        ${type === 'inserted'
+          ? `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${verb} dans Notion`
+          : `<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg> Non qualifié — BPS ${data.bps ?? '—'} (${qualification(data.bps)})`}
+      </div>`;
+  }
   feed.insertBefore(card, feed.firstChild);
 }
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function restoreLaunchBtn() {
+  const btn = document.getElementById('launch-btn');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Lancer`;
+}
+
+// Affiche une erreur bloquante VISIBLE (serveur injoignable, HTTP non-OK,
+// événement 'error' du pipeline). Sans ça l'échec restait silencieux.
+function showFatalError(msg) {
+  document.getElementById('idle-state').style.display = 'none';
+  document.getElementById('search-shimmer').style.display = 'none';
+  document.getElementById('lead-content').style.display = 'flex';
+  document.getElementById('lead-header').classList.add('visible');
+  document.getElementById('lead-progress').textContent = '';
+  document.getElementById('lead-name').textContent = 'Connexion impossible';
+  document.getElementById('score-wrap').style.opacity = '0';
+  document.getElementById('active-card').className = 'fail';
+  const banner = document.getElementById('status-banner');
+  banner.className = 'status-banner error visible';
+  banner.innerHTML = `
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+    ${escHtml(msg)}
+  `;
 }
 
 // ── Event handlers ───────────────────────────────────────
@@ -1363,9 +1554,23 @@ function handleEvent(raw) {
       break;
     }
 
+    case 'eliminated': {
+      document.getElementById('active-card').classList.remove('processing');
+      document.getElementById('active-card').classList.add('fail');
+      const banner = document.getElementById('status-banner');
+      banner.className = 'status-banner error visible';
+      banner.innerHTML = `
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        Éliminé : ${escHtml((d.reasons || []).join(', '))}
+      `;
+      stats.eliminated++;
+      updateStats();
+      setTimeout(() => addLeadCard({ ...currentLead, name: d.name, reasons: d.reasons }, 'eliminated'), 600);
+      break;
+    }
+
     case 'analysis_done': {
       setNodeDone('claude');
-      setScore(d.score || 1);
       const besoinsRow = document.getElementById('besoins-row');
       besoinsRow.innerHTML = '';
       (d.besoins || []).forEach((b, i) => {
@@ -1381,24 +1586,49 @@ function handleEvent(raw) {
       notes.textContent = d.notes || '';
       if (d.notes) notes.classList.add('visible');
 
-      currentLead.score = d.score;
       currentLead.besoins = d.besoins;
       break;
     }
+
+    case 'friction_done':
+      currentLead.friction_score = d.score;
+      currentLead.friction_flags = d.flags;
+      setFriction(d.score);
+      break;
+
+    case 'bps_done':
+      currentLead.bps = d.bps;
+      currentLead.qualif = qualification(d.bps);
+      setBps(d.bps);
+      break;
 
     case 'inserted': {
       setNodeDone('notion');
       document.getElementById('active-card').classList.remove('processing');
       document.getElementById('active-card').classList.add('success');
+      const verb = d.action === 'updated' ? 'mis à jour' : 'créé';
       const banner = document.getElementById('status-banner');
       banner.className = 'status-banner success visible';
       banner.innerHTML = `
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-        Lead inséré dans Notion avec succès
+        Lead ${verb} dans Notion avec succès
       `;
       stats.inserted++;
       updateStats();
       setTimeout(() => addLeadCard({ ...d, ...currentLead }, 'inserted'), 600);
+      break;
+    }
+
+    case 'notion_error': {
+      document.getElementById('active-card').classList.remove('processing');
+      document.getElementById('active-card').classList.add('fail');
+      const banner = document.getElementById('status-banner');
+      banner.className = 'status-banner error visible';
+      banner.innerHTML = `
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        Échec Notion : ${escHtml(d.message || '')}
+      `;
+      setTimeout(() => addLeadCard({ ...currentLead, name: d.name, message: d.message }, 'error'), 600);
       break;
     }
 
@@ -1409,7 +1639,7 @@ function handleEvent(raw) {
       banner.className = 'status-banner fail visible';
       banner.innerHTML = `
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-        Score insuffisant (${d.score}/5) — ignoré
+        Non qualifié — BPS ${d.bps} (${qualification(d.bps)})
       `;
       stats.skipped++;
       updateStats();
@@ -1417,11 +1647,39 @@ function handleEvent(raw) {
       break;
     }
 
-    case 'done':
+    case 'cached_skip': {
+      stats.cached = (stats.cached || 0) + 1;
+      updateStats();
+      break;
+    }
+
+    case 'done': {
+      const elim = d.eliminated || 0;
+      const cached = d.cached || 0;
+      const errs = Math.max(0, d.total - d.inserted - d.skipped - elim - cached);
       document.getElementById('done-total').textContent = d.total;
       document.getElementById('done-inserted').textContent = d.inserted;
       document.getElementById('done-skipped').textContent = d.skipped;
-      document.getElementById('done-sub').textContent = `${d.inserted} lead${d.inserted > 1 ? 's' : ''} envoyé${d.inserted > 1 ? 's' : ''} sur Notion`;
+      document.getElementById('done-eliminated').textContent = elim;
+      document.getElementById('done-cached').textContent = cached;
+      // Top 5 prospects (ranking serveur) — affichage en lecture seule.
+      const top = Array.isArray(d.top) ? d.top : [];
+      const topEl = document.getElementById('done-top');
+      if (top.length) {
+        const rows = top.map((p, i) => {
+          const ville = p.ville ? ` · ${escHtml(p.ville)}` : '';
+          return `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);">`
+            + `<span>${i + 1}. ${escHtml(p.name || '')}${ville}</span>`
+            + `<span style="font-weight:600;">BPS ${p.bps} · ${escHtml(p.qualification || '')}</span></div>`;
+        }).join('');
+        topEl.innerHTML = `<div style="font-weight:600;margin-bottom:6px;">Top ${top.length} prospects</div>${rows}`;
+      } else {
+        topEl.innerHTML = '';
+      }
+      let sub = `${d.inserted} lead${d.inserted > 1 ? 's' : ''} envoyé${d.inserted > 1 ? 's' : ''} sur Notion`;
+      if (errs > 0) sub += ` · ${errs} échec${errs > 1 ? 's' : ''}`;
+      if (cached > 0) sub += ` · ${cached} en cache`;
+      document.getElementById('done-sub').textContent = sub;
       setTimeout(() => document.getElementById('done-overlay').classList.add('visible'), 800);
       document.getElementById('launch-btn').disabled = false;
       document.getElementById('launch-btn').innerHTML = `
@@ -1429,10 +1687,16 @@ function handleEvent(raw) {
         Lancer
       `;
       break;
+    }
 
     case 'error':
       console.error('Pipeline error:', d.message);
-      document.getElementById('launch-btn').disabled = false;
+      showFatalError(`Erreur du pipeline : ${d.message}`);
+      restoreLaunchBtn();
+      break;
+
+    default:
+      console.debug('Événement non géré:', d.type);
       break;
   }
 }
@@ -1447,7 +1711,7 @@ async function launch() {
 
   if (abortCtrl) { abortCtrl.abort(); abortCtrl = null; }
 
-  stats = { total: 0, inserted: 0, skipped: 0 };
+  stats = { total: 0, inserted: 0, skipped: 0, eliminated: 0, cached: 0 };
   updateStats();
   resetPipeline();
   resetActiveCard();
@@ -1462,6 +1726,16 @@ async function launch() {
     const resp = await fetch(`/stream?keyword=${encodeURIComponent(keyword)}&city=${encodeURIComponent(city)}`, {
       signal: abortCtrl.signal
     });
+    if (!resp.ok) {
+      showFatalError(`Le serveur a répondu HTTP ${resp.status}. Vérifie le terminal où tourne « python3 app.py ».`);
+      restoreLaunchBtn();
+      return;
+    }
+    if (!resp.body) {
+      showFatalError("Réponse vide du serveur (flux SSE indisponible).");
+      restoreLaunchBtn();
+      return;
+    }
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -1479,11 +1753,13 @@ async function launch() {
       }
     }
   } catch(e) {
-    if (e.name !== 'AbortError') console.error('Stream error:', e);
+    if (e.name !== 'AbortError') {
+      console.error('Stream error:', e);
+      showFatalError("Serveur introuvable. Démarre-le avec « python3 app.py » puis ouvre http://127.0.0.1:8000 — n'ouvre pas le fichier HTML directement.");
+    }
   }
 
-  btn.disabled = false;
-  btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Lancer`;
+  restoreLaunchBtn();
 }
 
 function closeDone() {
