@@ -29,6 +29,7 @@ from notion_sync import create_or_update_prospect
 from segmentation import should_export, qualification, EXPORT_MIN_BPS, QUALIFICATION_VALUES
 from cache import load_cache, save_cache, was_processed_recently, mark_processed
 import csv_export
+import campaign_history
 
 load_dotenv()
 
@@ -132,8 +133,8 @@ def _fallback_analysis():
 
 
 def _parse_args(argv):
-    """Sépare flags (--dry-run / --healthcheck / --report / --csv[=chemin]) et
-    positionnels (mot-clé, ville). csv_path = None si --csv absent."""
+    """Sépare flags (--dry-run / --healthcheck / --report / --history /
+    --csv[=chemin]) et positionnels (mot-clé, ville). csv_path = None si --csv absent."""
     flags = {a for a in argv if a.startswith("--")}
     positional = [a for a in argv if not a.startswith("--")]
     csv_path = None
@@ -142,7 +143,8 @@ def _parse_args(argv):
             csv_path = csv_export.DEFAULT_CSV_PATH
         elif flag.startswith("--csv="):
             csv_path = flag.split("=", 1)[1] or csv_export.DEFAULT_CSV_PATH
-    return positional, ("--dry-run" in flags), ("--healthcheck" in flags), ("--report" in flags), csv_path
+    return (positional, ("--dry-run" in flags), ("--healthcheck" in flags),
+            ("--report" in flags), ("--history" in flags), csv_path)
 
 
 def _run_report():
@@ -170,7 +172,7 @@ def _run_report():
 
 
 def main():
-    positional, dry_run, do_healthcheck, do_report, csv_path = _parse_args(sys.argv[1:])
+    positional, dry_run, do_healthcheck, do_report, do_history, csv_path = _parse_args(sys.argv[1:])
 
     if do_healthcheck:
         # Diagnostic lecture seule : présence des clés + base Notion joignable.
@@ -178,13 +180,20 @@ def main():
         print(monitoring.format_health(result))
         sys.exit(0 if result["healthy"] else 1)
 
+    if do_history:
+        # Historique des campagnes (ADR-006) : LECTURE SEULE du journal local,
+        # aucun réseau, aucune clé .env requise.
+        runs, skipped = campaign_history.load_runs()
+        print(campaign_history.format_history(runs, skipped))
+        sys.exit(0)
+
     if do_report:
         # Bilan lecture seule (taux de réponse C3 + proposition calibration C2).
         _run_report()
         sys.exit(0)
 
     if len(positional) < 2:
-        print("Usage: python vitryne_leads.py \"mot-clé[,mot-clé2,...]\" \"zone[,zone2,...]\" [--dry-run] [--csv[=chemin]] [--healthcheck] [--report]")
+        print("Usage: python vitryne_leads.py \"mot-clé[,mot-clé2,...]\" \"zone[,zone2,...]\" [--dry-run] [--csv[=chemin]] [--healthcheck] [--report] [--history]")
         print("       Balayage élargi : séparez les mots-clés et les zones (quartiers/villes) par des virgules.")
         sys.exit(1)
 

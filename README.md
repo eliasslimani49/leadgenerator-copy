@@ -62,6 +62,16 @@ Mêmes règles que Notion : seuls les leads au-dessus du seuil
 Excel, sortie déterministe). Ce n'est pas un connecteur CRM : HubSpot/Salesforce
 restent exclus (ADR-005).
 
+### Historique des campagnes (V1)
+
+```bash
+python3 vitryne_leads.py --history
+```
+
+Lecture seule du journal local `.vitryne_runs.jsonl` (écrit à chaque run réel) :
+derniers runs, agrégats par métier × zone, évolution entre deux passages.
+Aucun réseau, aucune clé requise (module `campaign_history.py`, ADR-006).
+
 ## Tests
 
 Runners autonomes (stdlib, sans pytest) :
