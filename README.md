@@ -49,6 +49,19 @@ Port configurable : `PORT=8001 python3 app.py`.
 python3 vitryne_leads.py "kinésithérapeute" "Lyon"
 ```
 
+### Export CSV (V1)
+
+```bash
+python3 vitryne_leads.py "coiffeur" "Lyon" --csv            # vitryne_leads_export.csv
+python3 vitryne_leads.py "coiffeur" "Lyon" --csv=mon_export.csv
+python3 vitryne_leads.py "coiffeur" "Lyon" --csv --dry-run  # compte sans rien écrire
+```
+
+Mêmes règles que Notion : seuls les leads au-dessus du seuil
+`segmentation.should_export` sortent (module `csv_export.py`, UTF-8 BOM pour
+Excel, sortie déterministe). Ce n'est pas un connecteur CRM : HubSpot/Salesforce
+restent exclus (ADR-005).
+
 ## Tests
 
 Runners autonomes (stdlib, sans pytest) :

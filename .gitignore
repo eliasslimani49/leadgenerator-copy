@@ -18,5 +18,8 @@ venv/
 # Journal des breakdowns BPS (calibration C2, best effort, jamais commité)
 .vitryne_scores.jsonl
 
+# Export CSV des leads (données prospects, jamais commité)
+vitryne_leads_export.csv
+
 # OS
 .DS_Store
