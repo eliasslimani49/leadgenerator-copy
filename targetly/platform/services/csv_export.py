@@ -23,7 +23,7 @@ from targetly.core.segmentation import qualification, should_export
 
 # Chemin par défaut : fixe (pas d'horodatage) pour rester idempotent ;
 # l'opérateur passe --csv=chemin pour conserver plusieurs exports.
-DEFAULT_CSV_PATH = "vitryne_leads_export.csv"
+DEFAULT_CSV_PATH = "targetly_leads_export.csv"
 
 # Ordre contractuel des colonnes (cf. specs-export-csv-v1.md). Pas de colonnes
 # de workflow commercial (statut, responsable…) : lead intelligence, pas CRM.

@@ -1,4 +1,4 @@
-"""Modèle de données prospect unique pour le scoring Vitryne.
+"""Modèle de données prospect unique pour le scoring Targetly.
 
 Socle déterministe et réutilisable : étape "Enrichissement" du pipeline,
 en amont des filtres éliminatoires et du Buy Probability Score (BPS).
@@ -42,7 +42,7 @@ WEBSITE_FRESHNESS_VALUES = ("fresh", "outdated", "unknown")
 
 # --- Tables configurables ----------------------------------------------------
 
-# Token de type Google Places -> catégorie métier Vitryne.
+# Token de type Google Places -> catégorie métier Targetly.
 # Les coachs (nutrition / business) et le personal training n'ont pas de type
 # Google standard : ils retombent sur "autre" (à affiner via le mot-clé de
 # recherche ou l'analyse Claude dans un lot ultérieur).

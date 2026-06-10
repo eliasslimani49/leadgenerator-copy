@@ -193,7 +193,7 @@ def main():
         sys.exit(0)
 
     if len(positional) < 2:
-        print("Usage: python vitryne_leads.py \"mot-clé[,mot-clé2,...]\" \"zone[,zone2,...]\" [--dry-run] [--csv[=chemin]] [--healthcheck] [--report] [--history]")
+        print("Usage: python3 targetly_leads.py \"mot-clé[,mot-clé2,...]\" \"zone[,zone2,...]\" [--dry-run] [--csv[=chemin]] [--healthcheck] [--report] [--history]")
         print("       Balayage élargi : séparez les mots-clés et les zones (quartiers/villes) par des virgules.")
         sys.exit(1)
 

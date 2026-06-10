@@ -1,7 +1,7 @@
 """Buy Probability Score (BPS) — score principal, pur et déterministe.
 
 Agrège 6 dimensions en un score [0, 100] mesurant la probabilité d'achat de
-Vitryne. Explicable (breakdown + journal d'ajustements), traçable, configurable
+Targetly. Explicable (breakdown + journal d'ajustements), traçable, configurable
 (BPS_WEIGHTS, plafonds, règles), sans algorithme opaque. Aucun I/O.
 
 Méthode V3 (chaîne déterministe, cf. calculate_bps) :
@@ -224,7 +224,7 @@ _SCORERS = (
 
 
 def _bonus_metier_fit_with_pain(subs, p) -> bool:
-    """Bullseye Vitryne : métier à fort besoin latent ET irritant fort observé."""
+    """Bullseye Targetly : métier à fort besoin latent ET irritant fort observé."""
     dn, cf = subs.get("digital_need"), subs.get("current_friction")
     return dn is not None and cf is not None and dn >= 0.9 and cf >= 0.8
 

@@ -2,7 +2,7 @@
 
 Objectif métier : exclure (filtre) ou pénaliser (BPS) les enseignes qui ne
 décident pas en local — franchisés, succursales, réseaux nationaux. Ces
-prospects n'achètent pas Vitryne (décision centralisée, site déjà fourni).
+prospects n'achètent pas ce type d'offre (décision centralisée, site déjà fourni).
 
 Pur, déterministe, configurable, sans I/O. Deux niveaux de certitude :
   - "confirmed" : marque d'enseigne reconnue DANS LE NOM de l'établissement

@@ -1,4 +1,4 @@
-"""Moteur de filtres éliminatoires Vitryne.
+"""Moteur de filtres éliminatoires Targetly.
 
 Élimine les prospects hors cible AVANT tout scoring et avant l'appel Claude.
 Fonctions pures, déterministes, traçables : aucune I/O, aucun appel réseau.

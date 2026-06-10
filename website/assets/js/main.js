@@ -1,4 +1,4 @@
-/* Vitryne — site vitrine (V1)
+/* Targetly — site vitrine (V1)
    JS d'amélioration progressive : le site reste entièrement lisible sans lui. */
 (function () {
   "use strict";

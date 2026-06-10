@@ -235,7 +235,7 @@ def _question(angle) -> str:
 
 
 def _pitch(metier, angle) -> str:
-    """Bloc 5 — présentation douce de Vitryne, sans jargon SaaS, orientée quotidien."""
+    """Bloc 5 — présentation douce de l'offre de l'opérateur, sans jargon SaaS, orientée quotidien."""
     tail = {
         "image_pro": "avoir une page simple et claire où leurs clients les trouvent et réservent facilement.",
         "reservation": "gérer plus simplement leurs rendez-vous, sans tout faire à la main.",

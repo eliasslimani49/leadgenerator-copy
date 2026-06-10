@@ -1,5 +1,5 @@
 import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
-"""Test end-to-end déterministe du pipeline Vitryne (SANS réseau).
+"""Test end-to-end déterministe du pipeline Targetly (SANS réseau).
 
 Chaîne réelle exécutée sur des leads FABRIQUÉS (aucun appel Google/Claude/Notion,
 aucun fichier touché) :
@@ -195,7 +195,7 @@ def test_feedback_to_messaging_and_calibration():
 
 
 def _run_cli(dry_run):
-    """Exécute vitryne_leads.main() avec toute l'I/O monkeypatchée (réseau + disque).
+    """Exécute targetly.cli.leads.main() avec toute l'I/O monkeypatchée (réseau + disque).
 
     Compte les effets de bord (Notion / cache / journal). Le gate should_export
     est forcé à True pour atteindre déterministiquement la branche d'écriture.
@@ -238,7 +238,7 @@ def _run_cli(dry_run):
     # Journal des scores : compté, jamais écrit sur disque (e2e ne touche aucun fichier).
     vl.scorelog.record_score = lambda *a, **k: calls.__setitem__("scorelog", calls["scorelog"] + 1)
 
-    sys.argv = ["vitryne_leads.py", "kine", "Lyon"] + (["--dry-run"] if dry_run else [])
+    sys.argv = ["targetly_leads.py", "kine", "Lyon"] + (["--dry-run"] if dry_run else [])
     try:
         with contextlib.redirect_stdout(io.StringIO()):
             vl.main()

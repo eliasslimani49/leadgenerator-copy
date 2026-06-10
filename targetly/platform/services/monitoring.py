@@ -1,4 +1,4 @@
-"""Monitoring & santé du pipeline Vitryne — observabilité simple, opt-in.
+"""Monitoring & santé du pipeline Targetly — observabilité simple, opt-in.
 
 Trois usages, tous testables hors-ligne (réseau injectable) :
   - healthcheck(...) : présence des clés .env + accessibilité EN LECTURE SEULE
@@ -110,7 +110,7 @@ def healthcheck(*, token=None, db_id=None, env=None, db_probe=None) -> dict:
 def format_health(result) -> str:
     """Rapport de santé lisible. N'imprime JAMAIS la valeur d'une clé."""
     result = result or {}
-    lines = ["Santé Vitryne : " + ("OK" if result.get("healthy") else "DÉGRADÉ")]
+    lines = ["Santé Targetly : " + ("OK" if result.get("healthy") else "DÉGRADÉ")]
     for key, info in (result.get("keys") or {}).items():
         if info.get("present"):
             lines.append(f"  [OK] {key} : présente (len={info.get('length', 0)})")
