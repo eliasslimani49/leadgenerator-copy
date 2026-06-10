@@ -35,8 +35,8 @@ produit a construire autour d'un moteur stable.
 targetly/            package Python principal
 - core/              scoring pur, zero I/O reseau (bps, model, filters,
                      friction, ranking, segmentation, franchise, messaging,
-                     calibration, scorelog)
-- pipeline/          I/O d'enrichissement (discovery, scraper, cache, booking)
+                     calibration, scorelog, booking)
+- pipeline/          I/O d'enrichissement (discovery, scraper, cache)
 - platform/          couche SaaS
   - api/             app FastAPI (routes, SSE)
   - services/        orchestration campagnes, monitoring, csv_export,
