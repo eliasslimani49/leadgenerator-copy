@@ -128,11 +128,17 @@ def test_health():
 def test_stream_flow_no_network():
     print("test_stream_flow_no_network")
     saved = app.discovery.search_places
+    # Clés factices comme dans les autres tests : sans elles le pipeline émet
+    # 'error' avant discovery (le test dépendait du .env trouvé par remontée
+    # de dossiers en local — introuvable en CI).
+    saved_keys = app.GOOGLE_API_KEY, app.ANTHROPIC_API_KEY, app.NOTION_TOKEN
+    app.GOOGLE_API_KEY = app.ANTHROPIC_API_KEY = app.NOTION_TOKEN = "x"
     app.discovery.search_places = _fake_empty_search()  # aucun résultat -> aucun appel aval
     try:
         events = _drain("kine", "Lyon")
     finally:
         app.discovery.search_places = saved
+        app.GOOGLE_API_KEY, app.ANTHROPIC_API_KEY, app.NOTION_TOKEN = saved_keys
     types = [e["type"] for e in events]
     check(types == ["searching", "places_found", "done"],
           f"séquence attendue searching->places_found->done (obtenu : {types})")
