@@ -10,8 +10,8 @@ Produit uniquement : classement, élite, groupes, statistiques.
 from statistics import mean, median
 from typing import Callable, Dict, List
 
-from model import Prospect
-from segmentation import EXPORT_MIN_BPS
+from targetly.core.model import Prospect
+from targetly.core.segmentation import EXPORT_MIN_BPS
 
 # --- Configuration -----------------------------------------------------------
 

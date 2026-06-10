@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la synchronisation Notion (notion_sync.py).
 
 Runner autonome, SANS réseau : les I/O Notion sont remplacées par des fakes
@@ -7,14 +8,14 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-import notion_sync
-from notion_sync import (
+from targetly.platform.integrations import notion_sync
+from targetly.platform.integrations.notion_sync import (
     engine_properties,
     create_properties,
     create_or_update_prospect,
     MESSENGER_MARKER,
 )
-from model import Prospect
+from targetly.core.model import Prospect
 
 _failures = []
 

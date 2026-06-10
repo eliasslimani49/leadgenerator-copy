@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du moteur d'irritants digitaux (friction.py).
 
 Runner autonome, sans dépendance externe :  python3 test_friction.py
@@ -6,8 +7,8 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from model import Prospect
-from friction import (
+from targetly.core.model import Prospect
+from targetly.core.friction import (
     FRICTION_WEIGHTS,
     no_website,
     no_booking,

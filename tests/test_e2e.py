@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Test end-to-end déterministe du pipeline Vitryne (SANS réseau).
 
 Chaîne réelle exécutée sur des leads FABRIQUÉS (aucun appel Google/Claude/Notion,
@@ -24,16 +25,16 @@ import contextlib
 import io
 import sys
 
-import calibration
-import feedback
-import messaging
-import notion_sync
-import vitryne_leads as vl
-from bps import BPS_WEIGHTS, assign_bps
-from filters import elimination_reasons
-from friction import assign_friction
-from model import build_prospect
-from segmentation import QUALIFICATION_VALUES, qualification, should_export
+from targetly.core import calibration
+from targetly.platform.integrations import feedback
+from targetly.core import messaging
+from targetly.platform.integrations import notion_sync
+from targetly.cli import leads as vl
+from targetly.core.bps import BPS_WEIGHTS, assign_bps
+from targetly.core.filters import elimination_reasons
+from targetly.core.friction import assign_friction
+from targetly.core.model import build_prospect
+from targetly.core.segmentation import QUALIFICATION_VALUES, qualification, should_export
 
 _failures = []
 

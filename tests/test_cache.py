@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du cache local des Place ID (cache.py).
 
 Runner autonome, sans dépendance externe :  python3 test_cache.py
@@ -10,7 +11,7 @@ import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 
-from cache import (
+from targetly.pipeline.cache import (
     load_cache,
     mark_processed,
     save_cache,

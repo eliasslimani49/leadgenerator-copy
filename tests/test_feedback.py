@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la boucle de feedback conversion (feedback.py).
 
 Runner autonome, SANS réseau : l'I/O Notion est injectée (post -> json).
@@ -6,7 +7,7 @@ Runner autonome, SANS réseau : l'I/O Notion est injectée (post -> json).
 
 import sys
 
-from feedback import (
+from targetly.platform.integrations.feedback import (
     NOTION_STATUT_OPTIONS,
     OUTCOME_LADDER,
     RESPONDED_OUTCOMES,

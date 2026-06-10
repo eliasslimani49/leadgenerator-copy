@@ -18,8 +18,8 @@ une sortie principale, contrairement au cache best-effort).
 import csv
 from typing import NamedTuple
 
-from friction import besoins_from_flags
-from segmentation import qualification, should_export
+from targetly.core.friction import besoins_from_flags
+from targetly.core.segmentation import qualification, should_export
 
 # Chemin par défaut : fixe (pas d'horodatage) pour rester idempotent ;
 # l'opérateur passe --csv=chemin pour conserver plusieurs exports.

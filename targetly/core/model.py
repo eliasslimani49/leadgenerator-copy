@@ -8,7 +8,7 @@ Ce module ne fait AUCUN scoring, filtrage, ranking ni appel réseau.
 from dataclasses import dataclass, field, asdict
 from typing import List, Literal
 
-from franchise import detect_franchise_signals
+from targetly.core.franchise import detect_franchise_signals
 
 # --- Types bornés -----------------------------------------------------------
 

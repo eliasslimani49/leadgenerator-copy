@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du Buy Probability Score (bps.py).
 
 Runner autonome, sans dépendance externe :  python3 test_bps.py
@@ -6,8 +7,8 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from model import Prospect
-from bps import (
+from targetly.core.model import Prospect
+from targetly.core.bps import (
     BPS_WEIGHTS,
     FRICTION_SCORE_MAX,
     BONUS_CAP,

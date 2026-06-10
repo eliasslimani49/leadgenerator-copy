@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du monitoring / healthcheck (monitoring.py).
 
 Runner autonome, SANS réseau : la sonde Notion et l'écriture disque sont
@@ -10,8 +11,8 @@ journalisation des runs est best effort (ne casse jamais un run).
 import json
 import sys
 
-import monitoring
-from monitoring import (
+from targetly.platform.services import monitoring
+from targetly.platform.services.monitoring import (
     format_health,
     healthcheck,
     key_presence,

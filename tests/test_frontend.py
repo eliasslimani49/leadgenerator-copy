@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de cohérence du frontend (templates/index.html) avec le backend.
 
 Runner autonome, sans réseau ni navigateur :  python3 test_frontend.py
@@ -14,11 +15,11 @@ import re
 import sys
 from pathlib import Path
 
-import segmentation
+from targetly.core import segmentation
 
-ROOT = Path(__file__).resolve().parent
-HTML = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-APP = (ROOT / "app.py").read_text(encoding="utf-8")
+ROOT = Path(__file__).resolve().parent.parent
+HTML = (ROOT / "web" / "templates" / "index.html").read_text(encoding="utf-8")
+APP = (ROOT / "targetly" / "platform" / "api" / "app.py").read_text(encoding="utf-8")
 
 _failures = []
 

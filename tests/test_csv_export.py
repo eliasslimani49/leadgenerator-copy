@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de l'export CSV V1 (csv_export.py).
 
 Runner autonome, sans dépendance externe :  python3 test_csv_export.py
@@ -10,15 +11,15 @@ import os
 import sys
 import tempfile
 
-from csv_export import (
+from targetly.platform.services.csv_export import (
     CSV_COLUMNS,
     eligible_prospects,
     export_csv,
     format_export_report,
     prospect_row,
 )
-from model import Prospect
-from segmentation import EXPORT_MIN_BPS
+from targetly.core.model import Prospect
+from targetly.core.segmentation import EXPORT_MIN_BPS
 
 _failures = []
 

@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du messaging par bande BPS (messaging.py).
 
 Runner autonome, sans dépendance externe :  python3 test_messaging.py
@@ -6,13 +7,13 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from messaging import (
+from targetly.core.messaging import (
     ANGLE_BY_QUALIFICATION, message_angle, response_rates,
     messenger_message, messenger_angle, confidence_level,
     message_quality_score, message_quality_label, build_messenger_payload,
     CONFIDENCE_LEVELS, MESSAGE_ANGLES,
 )
-from model import Prospect
+from targetly.core.model import Prospect
 
 _failures = []
 

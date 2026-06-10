@@ -16,7 +16,7 @@ Garde-fous (qualité > automatisation) :
   - Sortie = PROPOSITION + rapport détaillé ; `BPS_WEIGHTS` n'est jamais muté.
 """
 
-from bps import BPS_WEIGHTS
+from targetly.core.bps import BPS_WEIGHTS
 
 # Paramètres CONFIGURABLES de prudence.
 CALIB_BLEND = 0.5          # part data-driven dans le mélange (0 = inchangé, 1 = full data)

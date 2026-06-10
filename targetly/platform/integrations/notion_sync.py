@@ -20,10 +20,10 @@ Les fonctions d'I/O sont au niveau module (monkeypatchables pour les tests).
 
 import requests
 
-from model import Prospect
-from segmentation import qualification
-from friction import besoins_from_flags
-from messaging import messenger_message
+from targetly.core.model import Prospect
+from targetly.core.segmentation import qualification
+from targetly.core.friction import besoins_from_flags
+from targetly.core.messaging import messenger_message
 
 NOTION_VERSION = "2022-06-28"
 NOTION_API = "https://api.notion.com/v1"

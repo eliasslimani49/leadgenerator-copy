@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la détection d'outil de réservation (booking.py).
 
 Runner autonome, sans dépendance externe :  python3 test_booking.py
@@ -6,7 +7,7 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from booking import BOOKING_PROVIDERS, detect_booking_provider
+from targetly.core.booking import BOOKING_PROVIDERS, detect_booking_provider
 
 _failures = []
 

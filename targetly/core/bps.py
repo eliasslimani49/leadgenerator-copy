@@ -19,7 +19,7 @@ d'un score adossé à peu de signaux (désactivable via CONFIDENCE_FLOOR=1.0).
 
 from typing import NamedTuple, Optional
 
-from model import Prospect
+from targetly.core.model import Prospect
 
 # Pondération des dimensions (V3, configurable, somme = 100).
 # Concentre le poids sur les deux signaux d'achat les plus prédictifs — la

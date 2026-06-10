@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la détection franchise / réseau (franchise.py).
 
 Runner autonome, sans dépendance externe :  python3 test_franchise.py
@@ -6,7 +7,7 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from franchise import (
+from targetly.core.franchise import (
     FRANCHISE_BRANDS,
     FRANCHISE_KEYWORDS,
     NETWORK_KEYWORDS,

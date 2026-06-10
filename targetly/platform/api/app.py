@@ -7,7 +7,7 @@ import asyncio
 import requests
 from dotenv import load_dotenv
 import anthropic
-from model import (
+from targetly.core.model import (
     build_prospect,
     sanitize_choice,
     WEBSITE_QUALITIES,
@@ -15,21 +15,24 @@ from model import (
     CTA_PRESENCES,
     WEBSITE_FRESHNESS_VALUES,
 )
-from scraper import scrape_website, check_website_accessibility
-import discovery
-from filters import elimination_reasons
-from friction import assign_friction
-from bps import assign_bps
-import ranking
-import messaging
-from notion_sync import create_or_update_prospect
-from segmentation import should_export, qualification
-from cache import load_cache, save_cache, was_processed_recently, mark_processed
+from targetly.pipeline.scraper import scrape_website, check_website_accessibility
+from targetly.pipeline import discovery
+from targetly.core.filters import elimination_reasons
+from targetly.core.friction import assign_friction
+from targetly.core.bps import assign_bps
+from targetly.core import ranking
+from targetly.core import messaging
+from targetly.platform.integrations.notion_sync import create_or_update_prospect
+from targetly.core.segmentation import should_export, qualification
+from targetly.pipeline.cache import load_cache, save_cache, was_processed_recently, mark_processed
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pathlib import Path
 
-load_dotenv(Path(__file__).parent / ".env", override=True)
+# Racine du depot : app.py vit dans targetly/platform/api/, .env et web/ a la racine.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+load_dotenv(REPO_ROOT / ".env", override=True)
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
@@ -327,7 +330,7 @@ async def stream(keyword: str, city: str):
     )
 
 
-INDEX_HTML = Path(__file__).parent / "templates" / "index.html"
+INDEX_HTML = REPO_ROOT / "web" / "templates" / "index.html"
 
 
 @app.get("/health")
@@ -346,7 +349,8 @@ async def index():
     return HTMLResponse(INDEX_HTML.read_text(encoding="utf-8"))
 
 
-if __name__ == "__main__":
+def main():
+    """Démarre le serveur web Targetly (utilisé par le shim racine app.py)."""
     import uvicorn
 
     host = os.getenv("HOST", "127.0.0.1")
@@ -358,5 +362,9 @@ if __name__ == "__main__":
     ) if not v]
     if missing:
         print(f"[!] Clés absentes de .env : {', '.join(missing)} — le pipeline échouera tant qu'elles ne sont pas renseignées.")
-    print(f"[Vitryne] Interface prête : http://{host}:{port}   (Ctrl+C pour arrêter)")
+    print(f"[Targetly] Interface prête : http://{host}:{port}   (Ctrl+C pour arrêter)")
     uvicorn.run(app, host=host, port=port)
+
+
+if __name__ == "__main__":
+    main()

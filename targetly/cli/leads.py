@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 import anthropic
 
-from model import (
+from targetly.core.model import (
     build_prospect,
     sanitize_choice,
     WEBSITE_QUALITIES,
@@ -14,22 +14,22 @@ from model import (
     CTA_PRESENCES,
     WEBSITE_FRESHNESS_VALUES,
 )
-from scraper import scrape_website, check_website_accessibility
-from discovery import search_places
-from filters import elimination_reasons
-from friction import assign_friction
-from bps import assign_bps
-import ranking
-import messaging
-import monitoring
-import scorelog
-import feedback
-import calibration
-from notion_sync import create_or_update_prospect
-from segmentation import should_export, qualification, EXPORT_MIN_BPS, QUALIFICATION_VALUES
-from cache import load_cache, save_cache, was_processed_recently, mark_processed
-import csv_export
-import campaign_history
+from targetly.pipeline.scraper import scrape_website, check_website_accessibility
+from targetly.pipeline.discovery import search_places
+from targetly.core.filters import elimination_reasons
+from targetly.core.friction import assign_friction
+from targetly.core.bps import assign_bps
+from targetly.core import ranking
+from targetly.core import messaging
+from targetly.platform.services import monitoring
+from targetly.core import scorelog
+from targetly.platform.integrations import feedback
+from targetly.core import calibration
+from targetly.platform.integrations.notion_sync import create_or_update_prospect
+from targetly.core.segmentation import should_export, qualification, EXPORT_MIN_BPS, QUALIFICATION_VALUES
+from targetly.pipeline.cache import load_cache, save_cache, was_processed_recently, mark_processed
+from targetly.platform.services import csv_export
+from targetly.platform.services import campaign_history
 
 load_dotenv()
 

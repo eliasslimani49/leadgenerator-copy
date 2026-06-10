@@ -7,7 +7,7 @@ Le rejet ne se fonde jamais sur business_type ni sur la catégorie "autre".
 
 from typing import List
 
-from model import Prospect
+from targetly.core.model import Prospect
 
 MIN_REVIEWS = 20
 

@@ -19,7 +19,7 @@ OUTCOME_LADDER = ("none", "contacted", "replied", "meeting", "won", "lost")
 
 # Issues comptant comme « a répondu » (taux de réponse C3). "lost" est exclu :
 # un prospect perdu peut ne jamais avoir répondu -> on n'inflate pas le taux.
-RESPONDED_OUTCOMES = ("replied", "meeting", "won")
+from targetly.core.messaging import RESPONDED_OUTCOMES  # noqa: F401 — source unique dans core (évite core -> integrations)
 # Issues servant la calibration C2 (signal de conversion / non-conversion).
 WON_OUTCOMES = ("won",)
 LOST_OUTCOMES = ("lost",)

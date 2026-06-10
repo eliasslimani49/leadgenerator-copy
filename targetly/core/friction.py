@@ -11,7 +11,7 @@ exigent has_website=True ET une valeur positive du signal correspondant.
 
 from typing import List
 
-from model import Prospect
+from targetly.core.model import Prospect
 
 # Irritant -> poids dans le Friction Score (V2, configurable).
 # phone_only a été RETIRÉ : il se déclenchait dès qu'il manquait une réservation

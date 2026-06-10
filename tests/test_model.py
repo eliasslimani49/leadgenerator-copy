@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du socle de données prospect (model.py).
 
 Runner autonome, sans dépendance externe :  python3 test_model.py
@@ -6,7 +7,7 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from model import (
+from targetly.core.model import (
     Prospect,
     build_prospect,
     validate_prospect,

@@ -18,7 +18,7 @@ Contraintes :
 import json
 import os
 
-SCORE_LOG_PATH = os.path.join(os.path.dirname(__file__), ".vitryne_scores.jsonl")
+SCORE_LOG_PATH = ".vitryne_scores.jsonl"  # relatif au cwd, comme monitoring.RUNS_LOG
 
 
 def score_record(prospect) -> dict:

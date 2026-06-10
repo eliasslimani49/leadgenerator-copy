@@ -14,7 +14,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-CACHE_PATH = Path(__file__).parent / ".vitryne_cache.json"
+CACHE_PATH = Path(".vitryne_cache.json")  # relatif au cwd, comme les journaux
 # TTL configurable. 0 (ou négatif) => cache désactivé (rien n'est jamais "récent").
 CACHE_TTL_DAYS = int(os.getenv("CACHE_TTL_DAYS", "7"))
 

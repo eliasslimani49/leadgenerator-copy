@@ -1,0 +1,1 @@
+"""Application web FastAPI (SSE)."""

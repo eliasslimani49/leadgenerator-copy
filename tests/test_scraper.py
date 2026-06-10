@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du scrape ciblé contact/réservation (scraper.py).
 
 Runner autonome, SANS réseau : le getter HTTP est injecté (url -> HTML).
@@ -8,7 +9,7 @@ import sys
 
 import requests
 
-from scraper import MAX_CONTACT_PAGES, scrape_website, check_website_accessibility
+from targetly.pipeline.scraper import MAX_CONTACT_PAGES, scrape_website, check_website_accessibility
 
 _failures = []
 

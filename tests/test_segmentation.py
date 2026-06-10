@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la segmentation commerciale (segmentation.py).
 
 Runner autonome, sans dépendance externe :  python3 test_segmentation.py
@@ -6,7 +7,7 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from segmentation import (
+from targetly.core.segmentation import (
     EXPORT_MIN_BPS,
     QUALIFICATION_DEFAULT,
     QUALIFICATION_VALUES,

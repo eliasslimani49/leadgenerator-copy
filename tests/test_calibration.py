@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la calibration déterministe des poids BPS (calibration.py).
 
 Runner autonome, sans dépendance externe :  python3 test_calibration.py
@@ -6,8 +7,8 @@ Sort en code 1 si au moins un test échoue.
 
 import sys
 
-from bps import BPS_WEIGHTS
-from calibration import (
+from targetly.core.bps import BPS_WEIGHTS
+from targetly.core.calibration import (
     MIN_PER_DIM,
     MIN_WON_TOTAL,
     format_report,

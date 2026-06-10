@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du journal best-effort des breakdowns BPS (scorelog.py).
 
 Runner autonome, SANS écriture disque : l'I/O (append/read) est injectée.
@@ -7,8 +8,8 @@ Runner autonome, SANS écriture disque : l'I/O (append/read) est injectée.
 import json
 import sys
 
-from model import Prospect
-from scorelog import (
+from targetly.core.model import Prospect
+from targetly.core.scorelog import (
     score_record,
     record_score,
     load_breakdowns,

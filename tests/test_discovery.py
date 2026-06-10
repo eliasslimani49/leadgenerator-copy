@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de la découverte élargie (discovery.py).
 
 Runner autonome, SANS réseau ni attente : le getter HTTP (`fetch`) et le délai
@@ -7,7 +8,7 @@ inter-pages (`sleep`) sont injectés.
 
 import sys
 
-from discovery import (
+from targetly.pipeline.discovery import (
     DISCOVERY_CAP,
     MAX_PAGES_PER_QUERY,
     SOURCE_CONTEXT_KEY,

@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests de l'historique des campagnes (campaign_history.py, ADR-006).
 
 Runner autonome, sans dépendance externe :  python3 test_campaign_history.py
@@ -12,7 +13,7 @@ import tempfile
 
 # Importé en PREMIER : le check hors-ligne ci-dessous doit précéder tout
 # import qui tirerait requests (monitoring n'est importé que pour la parité).
-from campaign_history import (
+from targetly.platform.services.campaign_history import (
     RUNS_LOG,
     aggregate_by_campaign,
     campaign_deltas,
@@ -49,7 +50,7 @@ def test_offline_imports_and_log_parity():
     print("test_offline_imports_and_log_parity")
     check("requests" not in sys.modules, "campaign_history n'importe jamais requests (hors ligne)")
     check("anthropic" not in sys.modules, "campaign_history n'importe jamais anthropic")
-    import monitoring  # importé APRÈS le check : sert uniquement à la parité
+    from targetly.platform.services import monitoring  # importé APRÈS le check : sert uniquement à la parité
     check(RUNS_LOG == monitoring.RUNS_LOG,
           "RUNS_LOG identique à monitoring.RUNS_LOG (constante dupliquée alignée)")
 

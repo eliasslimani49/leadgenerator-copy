@@ -1,3 +1,4 @@
+import _path  # noqa: F401 — ajoute la racine du dépôt au sys.path (exécution directe)
 """Tests du serveur / câblage du flux SSE (app.py).
 
 Runner autonome, SANS réseau ni clé API : la recherche Google est remplacée
@@ -21,7 +22,7 @@ import io
 import queue
 import sys
 
-import app
+from targetly.platform.api import app
 
 _failures = []
 

@@ -11,9 +11,9 @@ La bande vient de segmentation.qualification (source unique) : on ne réinvente
 aucun seuil ici. Aucune écriture, aucun réseau.
 """
 
-from segmentation import QUALIFICATION_VALUES, qualification
-from feedback import RESPONDED_OUTCOMES
-from booking import BOOKING_PROVIDERS
+from targetly.core.segmentation import QUALIFICATION_VALUES, qualification
+RESPONDED_OUTCOMES = ("replied", "meeting", "won")  # issues comptées comme réponse (source unique, partagée avec feedback)
+from targetly.core.booking import BOOKING_PROVIDERS
 
 # Angle d'approche par bande de qualification (CONFIGURABLE). "aucun" = ne pas
 # contacter (la bande "Ignorer" n'est pas démarchée).
