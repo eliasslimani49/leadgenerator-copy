@@ -1,4 +1,4 @@
-# Site vitrine Vitryne (V1)
+# Site vitrine Targetly (V1)
 
 Landing page statique de présentation du SaaS de génération de leads qualifiés.
 Aucun lien avec le moteur Python : ce dossier est autonome et ne touche à rien d'autre.

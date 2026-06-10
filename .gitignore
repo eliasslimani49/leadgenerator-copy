@@ -19,7 +19,7 @@ venv/
 .vitryne_scores.jsonl
 
 # Export CSV des leads (données prospects, jamais commité)
-vitryne_leads_export.csv
+targetly_leads_export.csv
 
 # OS
 .DS_Store

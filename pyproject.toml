@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "targetly"
+version = "0.1.0"
+description = "Targetly — moteur de prospection B2B locale : leads qualifiés, expliqués, exportables"
+readme = "README.md"
+requires-python = ">=3.9"
+# Miroir de requirements.txt (source de vérité tant que la transition SaaS
+# n'est pas finie) : ne pas ajouter de dépendance avant le chantier qui l'utilise.
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-dotenv",
+    "anthropic",
+    "requests",
+    "beautifulsoup4",
+]
+
+[tool.setuptools.packages.find]
+include = ["targetly*"]
